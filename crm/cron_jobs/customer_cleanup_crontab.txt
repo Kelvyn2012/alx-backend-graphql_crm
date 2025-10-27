@@ -1,0 +1,2 @@
+0 2 * * 0 /Users/kelvyn/Documents/Backend/alx_backend_graphql
+/crm/cron_jobs/clean_inactive_customers.sh
