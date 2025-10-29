@@ -149,6 +149,31 @@ class CreateOrder(graphene.Mutation):
         order.save()
 
         return CreateOrder(order=order, message="Order created successfully")
+    
+# ===== Update Low Stock Products =====
+class UpdateLowStockProducts(graphene.Mutation):
+    class Arguments:
+        pass  # no arguments needed
+
+    success = graphene.String()
+    updated_products = graphene.List(lambda: ProductType)
+
+    def mutate(self, info):
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        updated_products = []
+
+        for product in low_stock_products:
+            product.stock += 10  # Simulate restocking
+            product.save()
+            updated_products.append(product)
+
+        success_msg = f"Updated {len(updated_products)} low-stock products."
+
+        return UpdateLowStockProducts(
+            success=success_msg,
+            updated_products=updated_products
+        )
+
 
 
 # ===== Root Mutation =====
@@ -157,6 +182,10 @@ class Mutation(graphene.ObjectType):
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field() 
+
+    
+
 
 
 # ===== Query =====
