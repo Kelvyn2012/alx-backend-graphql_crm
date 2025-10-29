@@ -1,29 +1,26 @@
 from datetime import datetime
+from gql import gql, Client
+from gql.transport.requests import RequestsHTTPTransport
 import requests
 
 def log_crm_heartbeat():
-    """Logs a heartbeat message to confirm the CRM app is running."""
     timestamp = datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
-    message = f"{timestamp} CRM is alive\n"
-    log_path = "/tmp/crm_heartbeat_log.txt"
+    log_message = f"{timestamp} CRM is alive\n"
 
-    # Write heartbeat message
-    with open(log_path, "a") as log_file:
-        log_file.write(message)
+    # Log to /tmp
+    with open("/tmp/crm_heartbeat_log.txt", "a") as f:
+        f.write(log_message)
 
-    # Optional: verify GraphQL endpoint health
+    # Optional GraphQL check
     try:
-        response = requests.post(
-            "http://localhost:8000/graphql/",
-            json={"query": "{ hello }"},
-            timeout=5
+        transport = RequestsHTTPTransport(
+            url="http://localhost:8000/graphql",
+            verify=False,
+            retries=3,
         )
-        if response.status_code == 200:
-            with open(log_path, "a") as log_file:
-                log_file.write(f"{timestamp} GraphQL OK\n")
-        else:
-            with open(log_path, "a") as log_file:
-                log_file.write(f"{timestamp} GraphQL check failed ({response.status_code})\n")
+        client = Client(transport=transport, fetch_schema_from_transport=True)
+        query = gql("{ hello }")
+        result = client.execute(query)
+        print("GraphQL hello check:", result)
     except Exception as e:
-        with open(log_path, "a") as log_file:
-            log_file.write(f"{timestamp} GraphQL check error: {str(e)}\n")
+        print("GraphQL check failed:", e)
