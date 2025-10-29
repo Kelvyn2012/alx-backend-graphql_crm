@@ -19,3 +19,6 @@ django-crontab
 gql[requests]
 requests
 graphene
+celery
+django-celery-beat
+redis
